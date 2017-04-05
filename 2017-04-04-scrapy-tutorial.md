@@ -58,11 +58,12 @@ To understand the infrascture that's been built, let's break down the files and 
 For this initial tutorial, we are scraping quotes from [this site](http://quotes.toscrape.com/). For future tutorials, I will build spiders for more...uh...*valuable* information.
 
 ## What am I doing with it?
-RIght now, not much. I'm just learning! 
+Right now, not much. I'm just learning! 
 
 ## Workflow
 
 **Step 1 - Create spider**
+
 Create my "quotes" spider by creating [quotes_spider.py](tutorial/tutorial/spiders/quotes_spider.py). There are three main purposes for this script: 
 
 As you can see, our Spider subclasses scrapy.Spider and defines some attributes and methods:
@@ -72,6 +73,7 @@ As you can see, our Spider subclasses scrapy.Spider and defines some attributes 
 - Defining the function `parse()` to handle the response downloaded for each of the requests made. The `parse()` method usually parses the response, extracting the scraped data as dicts and also finding new URLs to follow and creating new requests (Request) from them.
 
 **Step 2 - Running Spider**
+
 `cd` into the main directory for the project - which is wherever the `scrapy.cfg` file exists. Once there, run -
 
 ```
@@ -80,6 +82,7 @@ scrapy crawl quotes
 This will output two html files in the working directory - in this case, the two files only house the information on the URLs we've parsed. 
 
 **Step 3 - Extracting Data**
+
 First, to learn how to extract data use scrapy shell on the site to try selectors. We can use this tool by runnin - 
 
 ```
@@ -161,6 +164,7 @@ class QuotesSpider(scrapy.Spider):
 The spider now grabs the text, author, and tags associated with each of the <div.quote> class elements, but right now it simply prints out the results instead of storing them.
 
 **Step 4 - Storing Results**
+
 The simplest way to store results from a spider is to either write them to JSON or JSON Lines format. The benefit of using JSON Lines is that you can run the scraper more than once without it crashing - and each record is a separate line so not everything is stored to memory.
 
 To store as JSON or JSON Lines and save to the directory, we run - 
@@ -173,6 +177,7 @@ scrapy crawl quotes -o quotes.jl
 For the sake of industry standardization, stick with JSON format for crawling. Using JSON Lines may work for standalone side projects, but for anything open source JSON will likely be used.
 
 **Step 5 - Making `scrapy` Even Better**
+
 Now we know how to parse a single URL (or a list of URLs) - but what about following links within a URL to make it recursive (meaning: successive paging through)?
 
 To do that, we first have to extract the link we want to follow. Looking at our quotes page, there is a link to the next page with the following HTML - 
@@ -223,8 +228,12 @@ class QuotesSpider(scrapy.Spider):
             yield scrapy.Request(next_page, callback=self.parse)
 ```
 
-The last chunk defining `next_page` to be yielded will loop through every page that contains the `link` class of the <li> element. The `parse()` function will look for the next page after extracting data and builds a new URL using the `urljoin()` function and yields a new request to the next page. Once that class-element no longer exists, the spider will stop crawling and the yielded results can be collected.
+The last chunk defining `next_page` to be yielded will loop through every page that contains the `link` class of the `<li>` element. The `parse()` function will look for the next page after extracting data and builds a new URL using the `urljoin()` function and yields a new request to the next page. Once that class-element no longer exists, the spider will stop crawling and the yielded results can be collected.
 
 This is scrapy’s mechanism of following links: when you yield a request in a callback method, scrapy will schedule that request to be sent and register a callback method to be executed when that request finishes.
 
 Using this, you can build complex crawlers that follow links according to rules you define, and extract different kinds of data depending on the page it’s visiting.
+
+**Step 6 - Storing Results**
+
+This will be the focus of the next tutorial, which will either be *Understaning Postgresql* or *Understanding dynamoDB* or some hodgepodge of both of those. 
